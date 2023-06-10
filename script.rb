@@ -3,6 +3,7 @@ require 'pry-byebug'
 
 class Game
     @@game_over = false
+    @@no_winner = false
     @@circle_turn = false
     @@winner = ""
 
@@ -20,6 +21,13 @@ class Game
     def self.winner
         @@winner
     end
+    def self.no_winner
+        @@no_winner
+    end
+
+    def self.declare_no_winner
+        puts "Nobody wins this game!"
+    end
 
     protected
     def makeAMove
@@ -28,6 +36,7 @@ class Game
         validMove = checkAvailable(move.split(", "))
         updateFieldView(validMove)
         checkWinner
+        checkFieldFull
     end
 
     private
@@ -99,14 +108,19 @@ class Game
         @@win_combos.each do |combo|
             if @@circle_turn then
                 combo.each {|row| row.map! {|item| item == "X" ? "O" : item}}
-                if combo == @@placed_circles then
+                combo.flatten.each_with_index { |item, index|
+                    if item == "O" and @@placed_circles[index] == "O" then
+                        
+                    end
+                }
+                if combo.include?(@@placed_circles) then
                     @@game_over = true
                     @@winner = "Circle"
                 else next
                 end
             else
                 combo.each {|row| row.map! {|item| item == "O" ? "X" : item}}
-                if combo == @@placed_crosses then
+                if combo.include?(@@placed_crosses) then
                     @@game_over = true
                     @@winner = "Cross"
                 else next
@@ -114,6 +128,12 @@ class Game
             end
         end
         @@circle_turn = !@@circle_turn
+    end
+
+    def checkFieldFull
+        if @@field_availability.flatten.all? {|cell| cell == false} then
+            @@no_winner = true
+        end
     end
 end
 
@@ -144,10 +164,14 @@ def play()
     cross = Player.new(crossName, "Cross")
     circle = Player.new(circleName, "Circle")
 
-    until Game.game_over == true
+    until Game.game_over || Game.no_winner == true
         Game.circle_turn ? circle.makeAMove : cross.makeAMove
     end
-    Game.winner == "Cross" ? cross.declareWinner : circle.declareWinner
+    if Game.game_over then
+        Game.winner == "Cross" ? cross.declareWinner : circle.declareWinner
+    else
+        Game.declare_no_winner
+    end
 end
 
 play()
