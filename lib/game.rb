@@ -4,7 +4,6 @@ require_relative 'board.rb'
 
 class Game
     include Display
-    # attr_reader :player1, :player2
 
     def initialize
         show_intro
